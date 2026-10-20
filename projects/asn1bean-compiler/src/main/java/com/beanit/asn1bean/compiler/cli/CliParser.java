@@ -16,6 +16,7 @@ package com.beanit.asn1bean.compiler.cli;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class CliParser {
@@ -32,7 +33,8 @@ public class CliParser {
   }
 
   public void addParameterGroup(String groupName, List<CliParameter> parameters) {
-    commandLineParameterGroups.add(new ParameterGroup(groupName.toLowerCase(), parameters));
+    commandLineParameterGroups.add(
+        new ParameterGroup(groupName.toLowerCase(Locale.ROOT), parameters));
   }
 
   public void addParameters(List<CliParameter> parameters) {
@@ -61,7 +63,7 @@ public class CliParser {
         throw new CliParseException("No parameters found.");
       }
       for (ParameterGroup parameterGroup : commandLineParameterGroups) {
-        if (parameterGroup.name.equals(args[0].toLowerCase())) {
+        if (parameterGroup.name.equals(args[0].toLowerCase(Locale.ROOT))) {
           selectedGroup = parameterGroup.name;
           parameters = parameterGroup.parameters;
         }
