@@ -425,6 +425,11 @@ public class BerClassWriter {
    */
   private Tag getTag(AsnTaggedType asnTaggedType) {
 
+    return getTag(asnTaggedType, module);
+  }
+
+  private Tag getTag(AsnTaggedType asnTaggedType, AsnModule definingModule) {
+
     AsnTag asnTag = asnTaggedType.tag;
 
     if (asnTag == null) {
@@ -449,7 +454,7 @@ public class BerClassWriter {
     String tagTypeString = asnTaggedType.tagType;
 
     if (tagTypeString.isEmpty()) {
-      if (tagDefault == TagDefault.EXPLICIT) {
+      if (definingModule.tagDefault == TagDefault.EXPLICIT) {
         tag.type = TagType.EXPLICIT;
       } else {
         tag.type = TagType.IMPLICIT;
@@ -463,12 +468,12 @@ public class BerClassWriter {
     }
 
     if (tag.type == TagType.IMPLICIT) {
-      if (isDirectAnyOrChoice(asnTaggedType)) {
+      if (isDirectAnyOrChoice(asnTaggedType, definingModule)) {
         tag.type = TagType.EXPLICIT;
       }
     }
 
-    if ((tag.type == TagType.IMPLICIT) && isPrimitive(asnTaggedType)) {
+    if ((tag.type == TagType.IMPLICIT) && isPrimitive(asnTaggedType, definingModule)) {
       tag.typeStructure = TypeStructure.PRIMITIVE;
     } else {
       tag.typeStructure = TypeStructure.CONSTRUCTED;
@@ -2420,22 +2425,22 @@ public class BerClassWriter {
     return constructorParameters;
   }
 
-  private AsnType followAndGetNextTaggedOrUniversalType(AsnType asnType, AsnModule module)
+  private ResolvedType followAndGetNextTaggedOrUniversalType(AsnType asnType, AsnModule module)
       throws CompileException {
     return followAndGetNextTaggedOrUniversalType(asnType, module, true);
   }
 
-  private AsnType followAndGetNextTaggedOrUniversalType(
+  private ResolvedType followAndGetNextTaggedOrUniversalType(
       AsnType asnType, AsnModule module, boolean firstCall) throws CompileException {
     if (asnType instanceof AsnTaggedType) {
       if (!firstCall) {
-        return asnType;
+        return new ResolvedType(asnType, module);
       }
       AsnTaggedType taggedType = (AsnTaggedType) asnType;
       if (taggedType.definedType != null) {
         return followAndGetNextTaggedOrUniversalType(taggedType.definedType, module, false);
       } else {
-        return taggedType.typeReference;
+        return new ResolvedType(taggedType.typeReference, module);
       }
     } else if (asnType instanceof AsnDefinedType) {
 
@@ -2468,13 +2473,13 @@ public class BerClassWriter {
         return followAndGetNextTaggedOrUniversalType(definedType.typeName, module);
       }
     } else if (asnType instanceof AsnUniversalType) {
-      return asnType;
+      return new ResolvedType(asnType, module);
     } else {
       throw new IllegalStateException();
     }
   }
 
-  private AsnType followAndGetNextTaggedOrUniversalType(String typeName, AsnModule module)
+  private ResolvedType followAndGetNextTaggedOrUniversalType(String typeName, AsnModule module)
       throws CompileException {
 
     AsnType asnType = module.typesByName.get(typeName);
@@ -2507,7 +2512,13 @@ public class BerClassWriter {
 
   private boolean isDirectAnyOrChoice(AsnTaggedType taggedType) throws CompileException {
 
-    AsnType followedType = followAndGetNextTaggedOrUniversalType(taggedType, module);
+    return isDirectAnyOrChoice(taggedType, module);
+  }
+
+  private boolean isDirectAnyOrChoice(AsnTaggedType taggedType, AsnModule definingModule)
+      throws CompileException {
+
+    AsnType followedType = followAndGetNextTaggedOrUniversalType(taggedType, definingModule).type;
     return (followedType instanceof AsnAny) || (followedType instanceof AsnChoice);
   }
 
@@ -2516,24 +2527,28 @@ public class BerClassWriter {
   }
 
   private AsnUniversalType getUniversalType(AsnType asnType, AsnModule module) {
+    ResolvedType resolvedType = new ResolvedType(asnType, module);
     while (true) {
-      if (!((asnType = followAndGetNextTaggedOrUniversalType(asnType, module))
-          instanceof AsnTaggedType)) {
+      resolvedType = followAndGetNextTaggedOrUniversalType(resolvedType.type, resolvedType.module);
+      if (!(resolvedType.type instanceof AsnTaggedType)) {
         break;
       }
     }
-    return (AsnUniversalType) asnType;
+    return (AsnUniversalType) resolvedType.type;
   }
 
-  private boolean isPrimitive(AsnTaggedType asnTaggedType) {
-    AsnType asnType = asnTaggedType;
-    while ((asnType = followAndGetNextTaggedOrUniversalType(asnType, module))
-        instanceof AsnTaggedType) {
-      if (isExplicit(getTag((AsnTaggedType) asnType))) {
+  private boolean isPrimitive(AsnTaggedType asnTaggedType, AsnModule definingModule) {
+    ResolvedType resolvedType = new ResolvedType(asnTaggedType, definingModule);
+    while (true) {
+      resolvedType = followAndGetNextTaggedOrUniversalType(resolvedType.type, resolvedType.module);
+      if (!(resolvedType.type instanceof AsnTaggedType)) {
+        break;
+      }
+      if (isExplicit(getTag((AsnTaggedType) resolvedType.type, resolvedType.module))) {
         return false;
       }
     }
-    return isPrimitive((AsnUniversalType) asnType);
+    return isPrimitive((AsnUniversalType) resolvedType.type);
   }
 
   private boolean isPrimitiveOrRetaggedPrimitive(AsnType asnType) {
@@ -2640,5 +2655,15 @@ public class BerClassWriter {
     public TagClass tagClass;
     public TagType type;
     public TypeStructure typeStructure;
+  }
+
+  private static class ResolvedType {
+    private final AsnModule module;
+    private final AsnType type;
+
+    private ResolvedType(AsnType type, AsnModule module) {
+      this.module = module;
+      this.type = type;
+    }
   }
 }

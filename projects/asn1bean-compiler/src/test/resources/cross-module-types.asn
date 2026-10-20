@@ -1,0 +1,33 @@
+CROSS-MODULE-A DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+IMPORTS
+    ExplicitImportedType,
+    ImplicitImportedType,
+    DefaultTaggedType
+FROM CROSS-MODULE-B;
+
+ExplicitTopType ::= [APPLICATION 0] EXPLICIT ExplicitImportedType
+ImplicitTopType ::= [APPLICATION 1] IMPLICIT ImplicitImportedType
+DefaultTopType ::= [APPLICATION 2] IMPLICIT DefaultTaggedType
+
+END
+
+CROSS-MODULE-B DEFINITIONS EXPLICIT TAGS ::=
+BEGIN
+
+EXPORTS
+    ExplicitImportedType,
+    ImplicitImportedType,
+    DefaultTaggedType;
+
+ExplicitImportedType ::= [APPLICATION 10] EXPLICIT ExplicitLocalType
+ExplicitLocalType ::= INTEGER
+
+ImplicitImportedType ::= [APPLICATION 11] IMPLICIT ImplicitLocalType
+ImplicitLocalType ::= INTEGER
+
+DefaultTaggedType ::= [APPLICATION 12] DefaultLocalType
+DefaultLocalType ::= INTEGER
+
+END
