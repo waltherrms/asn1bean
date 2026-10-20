@@ -135,6 +135,7 @@ configure(javaProjects) {
 
     tasks.build {
         dependsOn("jarAll")
+        finalizedBy("publishToMavenLocal")
     }
 
     eclipse.pathVariables(mapOf("GRADLE_USER_HOME" to file(gradle.gradleUserHomeDir)))
