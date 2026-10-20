@@ -12,11 +12,6 @@ plugins {
 
 var cfgJavaVersion = JavaVersion.VERSION_21
 
-val sonatypeRepository: String? by project
-val sonatypeSnapshotRepository: String? by project
-val sonatypeUser: String? by project
-val sonatypePass: String? by project
-val sonatypeStagingProfileId: String? by project
 
 //----------- project specific configuration start --------------------
 
