@@ -558,7 +558,7 @@ boolean_type returns [AsnBoolean obj]
 choice_type	returns [AsnChoice obj]
 {AsnChoice ch = new AsnChoice(); List<AsnElementType> eltplst; 
 obj = null;}
-	: (	CHOICE_KW L_BRACE (eltplst = elementType_list {ch.componentTypes = eltplst ;}) R_BRACE ) 
+	: (	CHOICE_KW L_BRACE (eltplst = elementType_list[ch] {ch.componentTypes = eltplst ;}) R_BRACE )
 		{obj = ch; eltplst = null; ch = null;}
 	;
 
@@ -623,7 +623,7 @@ sequence_type returns [AsnType obj]
 List<AsnElementType> eltplist ; AsnConstraint cnstrnt ; obj = null;}
 	:  ( SEQUENCE_KW {seq.isSequence = true;} 
 	    L_BRACE 
-	   (eltplist = elementType_list {seq.componentTypes = eltplist;})? 
+	   (eltplist = elementType_list[seq] {seq.componentTypes = eltplist;})?
 	    R_BRACE )
 		{obj = seq ; eltplist = null; seq =null; }
 	;
@@ -665,7 +665,7 @@ AsnType obj; AsnTag tg; String s;}
 set_type returns [AsnType obj]
 {AsnSequenceSet set = new AsnSequenceSet();
 List<AsnElementType> eltplist ;obj = null;}
-	:  ( SET_KW L_BRACE (eltplist =  elementType_list {set.componentTypes = eltplist ;})? R_BRACE )
+	:  ( SET_KW L_BRACE (eltplist =  elementType_list[set] {set.componentTypes = eltplist ;})? R_BRACE )
 		{obj = set ; eltplist = null; set = null;}
 	;
 		
@@ -756,10 +756,10 @@ typeorvalue returns [Object obj]
 	  {obj = obj1; obj1=null;}
 	;
 
-elementType_list returns [List<AsnElementType> elelist]
+elementType_list[AsnConstructedType constructedType] returns [List<AsnElementType> elelist]
 {elelist = new ArrayList<>(); AsnElementType eletyp; int i=1; }
-	:	((ELLIPSIS | eletyp = elementType {if (eletyp.name.isEmpty()) {eletyp.name = "element" + i;};elelist.add(eletyp);i++; })
-	    (COMMA (ELLIPSIS | (eletyp = elementType {if (eletyp.name.isEmpty()) {eletyp.name = "element" + i;};elelist.add(eletyp);i++; })))*)
+	:	((ELLIPSIS {constructedType.hasExtensionMarker = true;} | eletyp = elementType {if (eletyp.name.isEmpty()) {eletyp.name = "element" + i;};elelist.add(eletyp);i++; })
+	    (COMMA (ELLIPSIS {constructedType.hasExtensionMarker = true;} | (eletyp = elementType {if (eletyp.name.isEmpty()) {eletyp.name = "element" + i;};elelist.add(eletyp);i++; })))*)
 	;
 
 elementType	returns [AsnElementType eletyp]

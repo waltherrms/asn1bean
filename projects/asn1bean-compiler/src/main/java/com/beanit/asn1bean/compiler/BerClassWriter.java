@@ -814,10 +814,11 @@ public class BerClassWriter {
     write("private byte[] code = null;");
 
     setClassNamesOfComponents(listOfSubClassNames, componentTypes, className);
+    boolean isExtensible = extensibilityImplied || asnSequenceSet.hasExtensionMarker;
 
     writeMembers(componentTypes);
 
-    if (asnSequenceSet.isSequence && accessExtended && extensibilityImplied) {
+    if (asnSequenceSet.isSequence && accessExtended && isExtensible) {
       String accessModifierString = jaxbMode ? "private" : "public";
       write(accessModifierString + " byte[] extensionBytes = null;");
     }
@@ -826,7 +827,7 @@ public class BerClassWriter {
 
     if (jaxbMode) {
       writeGetterAndSetter(componentTypes);
-      if (asnSequenceSet.isSequence && accessExtended && extensibilityImplied) {
+      if (asnSequenceSet.isSequence && accessExtended && isExtensible) {
         write("public byte[] getExtensionBytes() {");
         write("return extensionBytes;");
         write("}\n");
@@ -842,12 +843,14 @@ public class BerClassWriter {
 
     writeSimpleEncodeFunction();
 
-    writeSequenceOrSetEncodeFunction(componentTypes, hasExplicitTag, asnSequenceSet.isSequence);
+    writeSequenceOrSetEncodeFunction(
+        componentTypes, hasExplicitTag, asnSequenceSet.isSequence, isExtensible);
 
     writeSimpleDecodeFunction("true");
 
     if (asnSequenceSet.isSequence) {
-      writeSequenceDecodeMethod(convertToComponentInfos(componentTypes), hasExplicitTag);
+      writeSequenceDecodeMethod(
+          convertToComponentInfos(componentTypes), hasExplicitTag, isExtensible);
     } else {
       writeSetDecodeFunction(convertToComponentInfos(componentTypes), hasExplicitTag);
     }
@@ -1267,7 +1270,10 @@ public class BerClassWriter {
   }
 
   private void writeSequenceOrSetEncodeFunction(
-      List<AsnElementType> componentTypes, boolean hasExplicitTag, boolean isSequence)
+      List<AsnElementType> componentTypes,
+      boolean hasExplicitTag,
+      boolean isSequence,
+      boolean isExtensible)
       throws IOException {
     write("public int encode(OutputStream reverseOS, boolean withTag) throws IOException {\n");
 
@@ -1282,7 +1288,7 @@ public class BerClassWriter {
       }
     }
 
-    if (isSequence && accessExtended && extensibilityImplied) {
+    if (isSequence && accessExtended && isExtensible) {
       write("if (extensionBytes != null) {");
       write("reverseOS.write(extensionBytes);");
       write("codeLength += extensionBytes.length;");
@@ -1419,7 +1425,8 @@ public class BerClassWriter {
     }
   }
 
-  private void writeSequenceDecodeMethod(List<ComponentInfo> components, boolean hasExplicitTag)
+  private void writeSequenceDecodeMethod(
+      List<ComponentInfo> components, boolean hasExplicitTag, boolean isExtensible)
       throws IOException {
     write("public int decode(InputStream is, boolean withTag) throws IOException {");
     write("int tlByteCount = 0;");
@@ -1459,7 +1466,7 @@ public class BerClassWriter {
       }
     }
 
-    if (extensibilityImplied) {
+    if (isExtensible) {
       if (accessExtended) {
         writeSequenceDecodeMethodAccessibleExtensionEnd(hasExplicitTag);
       } else {

@@ -13,4 +13,8 @@
  */
 package com.beanit.asn1bean.compiler.model;
 
-public class AsnConstructedType extends AsnUniversalType {}
+public class AsnConstructedType extends AsnUniversalType {
+
+  /** Indicates whether the type declaration contains an explicit extension marker (...). */
+  public boolean hasExtensionMarker;
+}

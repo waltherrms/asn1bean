@@ -2649,7 +2649,7 @@ inputState.guessing--;
 			match(CHOICE_KW);
 			match(L_BRACE);
 			{
-			eltplst=elementType_list();
+			eltplst=elementType_list(ch);
 			if ( inputState.guessing==0 ) {
 				ch.componentTypes = eltplst ;
 			}
@@ -3012,7 +3012,7 @@ inputState.guessing--;
 			case UPPER:
 			case LOWER:
 			{
-				eltplist=elementType_list();
+				eltplist=elementType_list(seq);
 				if ( inputState.guessing==0 ) {
 					seq.componentTypes = eltplist;
 				}
@@ -3156,7 +3156,7 @@ inputState.guessing--;
 			case UPPER:
 			case LOWER:
 			{
-				eltplist=elementType_list();
+				eltplist=elementType_list(set);
 				if ( inputState.guessing==0 ) {
 					set.componentTypes = eltplist ;
 				}
@@ -3827,7 +3827,9 @@ inputState.guessing--;
 		return s;
 	}
 	
-	public final List<AsnElementType>  elementType_list() throws RecognitionException, TokenStreamException {
+	public final List<AsnElementType>  elementType_list(
+		AsnConstructedType constructedType
+	) throws RecognitionException, TokenStreamException {
 		List<AsnElementType> elelist;
 		
 		elelist = new ArrayList<>(); AsnElementType eletyp; int i=1;
@@ -3839,6 +3841,9 @@ inputState.guessing--;
 			case ELLIPSIS:
 			{
 				match(ELLIPSIS);
+				if ( inputState.guessing==0 ) {
+					constructedType.hasExtensionMarker = true;
+				}
 				break;
 			}
 			case ANY_KW:
@@ -3910,6 +3915,9 @@ inputState.guessing--;
 					case ELLIPSIS:
 					{
 						match(ELLIPSIS);
+						if ( inputState.guessing==0 ) {
+							constructedType.hasExtensionMarker = true;
+						}
 						break;
 					}
 					case ANY_KW:

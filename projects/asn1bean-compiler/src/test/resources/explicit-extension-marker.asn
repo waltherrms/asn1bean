@@ -1,0 +1,23 @@
+EXPLICIT-EXTENSION-MARKER DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+ExtensibleSequence ::= SEQUENCE {
+    value INTEGER,
+    ...
+}
+
+NonExtensibleSequence ::= SEQUENCE {
+    value INTEGER
+}
+
+ExtensibleSet ::= SET {
+    value INTEGER,
+    ...
+}
+
+ExtensibleChoice ::= CHOICE {
+    value INTEGER,
+    ...
+}
+
+END
