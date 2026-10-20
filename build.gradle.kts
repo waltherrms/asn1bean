@@ -49,8 +49,6 @@ tasks.register<Tar>("tar") {
 
             include("projects/asn1bean-compiler/src/**")
             include("projects/asn1bean-compiler/build.gradle.kts")
-            include("projects/asn1bean-compiler/antlr/**")
-            include("projects/asn1bean-compiler/dependencies/**")
         }
     }
 
@@ -108,7 +106,7 @@ configure(javaProjects) {
     }
 
     tasks.withType<JavaCompile>().configureEach {
-        options.errorprone.excludedPaths.set(".*java-gen.*")
+        options.errorprone.excludedPaths.set(".*/build/.*")
     }
 
     afterEvaluate {
@@ -144,7 +142,6 @@ configure(javaProjects) {
 
     tasks.javadoc {
         exclude("**/internal/**")
-        exclude("**/java-gen/**")
         exclude("**/app/**")
 
         //linking Javadoc in version prior 9 does not work well because Javadoc uses html frames.

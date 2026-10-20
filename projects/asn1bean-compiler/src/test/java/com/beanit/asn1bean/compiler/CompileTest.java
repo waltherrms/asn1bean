@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 public class CompileTest {
 
-  private static final String GENERATED_SRC_DIR = "src/test/java-gen";
+  private static final String GENERATED_SRC_DIR = "build/test/java-gen";
   private static final String ROOT_PACKAGE_NAME = "com.beanit.asn1bean.compiler";
   String[] args;
 
