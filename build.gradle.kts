@@ -16,7 +16,7 @@ val cfgJavaToolchainVersion = JavaLanguageVersion.of(25)
 
 //----------- project specific configuration start --------------------
 
-val cfgVersion = "1.16.1-SNAPSHOT"
+val cfgVersion = "1.16.1-rms.1-SNAPSHOT"
 val cfgGroup = "com.beanit"
 val cfgCopyToRoot = true
 val cfgSignPom = true
