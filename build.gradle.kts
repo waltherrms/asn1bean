@@ -10,7 +10,8 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.36.0"
 }
 
-var cfgJavaVersion = JavaVersion.VERSION_21
+val cfgJavaVersion = JavaVersion.VERSION_21
+val cfgJavaToolchainVersion = JavaLanguageVersion.of(25)
 
 
 //----------- project specific configuration start --------------------
@@ -84,6 +85,9 @@ configure(javaProjects) {
     }
 
     java {
+        toolchain {
+            languageVersion.set(cfgJavaToolchainVersion)
+        }
         sourceCompatibility = cfgJavaVersion
         targetCompatibility = cfgJavaVersion
     }
@@ -101,6 +105,7 @@ configure(javaProjects) {
     }
 
     tasks.withType<JavaCompile>().configureEach {
+        options.release.set(cfgJavaVersion.majorVersion.toInt())
         options.errorprone.excludedPaths.set(".*/build/.*")
     }
 
